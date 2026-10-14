@@ -1,0 +1,8 @@
+Référence;Nom;Prénom;Adresse;Suite adresse;Code porte;Code pays;Code Postal;Ville;Téléphone;E-mail;Type;Raison sociale;Date Envoi;Poids;Produit;Point relais;Livraison le Samedi;Document / Marchandise;Longueur;Largeur;Hauteur;Nom Envoi;Description contenu; Valeur Douane; Valeur Assurance;Incoterm
+REF;NOM 1;Prénom 1;Adresse 1; Suite adresse 1;01D45;FR;75012;Paris;101010101;email@email.com;part;;27/01/2017;2;9A;;2;;;;;Envoi 1;;;;
+;NOM 2;Prénom 2;Adresse 2;;;BE;1000;Bruxelles;101010101;email@email.com;pro;Corporate 2;27/01/2017;3;9F;;;2;44;44;33;Envoi 2;;;1000
+;NOM 3;Prénom 3;Adresse 3; Suite adresse 3;01D45;AZ;2000;Johannesburg;101010101;email@email.com;part;;27/01/2017;4;9D;;;1;44;44;33;Envoi 3;M_01;234;
+;NOM 4;Prénom 4;;;;FR;;;101010101;email@email.com;pro;Corporate 1;27/01/2017;5;86;1420R;2;;44;44;33;Envoi 4;;;
+SISI;;;;;;FR;;;101010102;email@email.com;part;;27/01/2017;6;9B;;2;;;;;Envoi 5;;;
+;NOM 6;Prénom 6;Adresse 6; Suite adresse 6;01D45;RE;97400;Saint denis;101010107;email@email.com;part;;27/01/2017;7;9J;;;;44;44;33;Envoi 6;D_19;567;
+

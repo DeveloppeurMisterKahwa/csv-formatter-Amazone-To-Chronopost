@@ -1,0 +1,8 @@
+# Données clients : rapports Amazon et fichiers générés pour Chronopost
+*.txt
+*.csv
+# Le modèle Chronopost ne contient que des données fictives
+!import_multicolis_exemple.csv
+
+# Python
+__pycache__/
