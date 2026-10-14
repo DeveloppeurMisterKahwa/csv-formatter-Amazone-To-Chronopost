@@ -15,9 +15,9 @@ from pathlib import Path
 # --- Configuration ----------------------------------------------------------
 
 # Codes produit Chronopost (voir l'annexe page 3 de la documentation).
-# Valeurs reprises du fichier exemple : à vérifier selon votre contrat.
-CODE_PRODUIT_PAR_PAYS = {"FR": "9A"}
-CODE_PRODUIT_DEFAUT = "9F"
+PRODUIT_PARTICULIER_FRANCE = "9C"  # Chrono 18
+PRODUIT_PRO_FRANCE = "1S"          # Chrono 13 (Instance agence)
+PRODUIT_ETRANGER = "9F"            # Chrono Classic
 
 # Poids unitaire en kg (emballage compris) par SKU Amazon.
 # Poids du colis = somme(poids unitaire x quantité).
@@ -79,7 +79,7 @@ def lire_texte(chemin):
 def lire_commandes(chemin):
     """Regroupe les lignes du TSV par numéro de commande (un colis par commande)."""
     lecteur = csv.DictReader(
-        lire_texte(chemin).splitlines(), delimiter="\t", quoting=csv.QUOTE_NONE
+        lire_texte(chemin).splitlines(), delimiter="\t", quoting=csv.QUOTE_NONE 
     )
     commandes = {}
     for ligne in lecteur:
@@ -154,6 +154,13 @@ def calculer_poids(lignes, skus_inconnus):
     return f"{poids:.2f}"
 
 
+def choisir_produit(pays, est_pro):
+    """Chrono Classic à l'étranger ; en France, selon le type de destinataire."""
+    if pays != "FR":
+        return PRODUIT_ETRANGER
+    return PRODUIT_PRO_FRANCE if est_pro else PRODUIT_PARTICULIER_FRANCE
+
+
 def commande_vers_colis(lignes, date_envoi, skus_inconnus):
     """Construit une ligne Chronopost. Les colonnes absentes resteront vides."""
     ligne = lignes[0]
@@ -184,7 +191,7 @@ def commande_vers_colis(lignes, date_envoi, skus_inconnus):
         "Raison sociale": raison_sociale,
         "Date Envoi": date_envoi,
         "Poids": calculer_poids(lignes, skus_inconnus),
-        "Produit": CODE_PRODUIT_PAR_PAYS.get(pays, CODE_PRODUIT_DEFAUT),
+        "Produit": choisir_produit(pays, est_pro),
         "Nom Envoi": ligne["order-id"],
     }
     return colis
