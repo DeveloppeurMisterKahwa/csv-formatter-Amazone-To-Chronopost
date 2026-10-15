@@ -33,6 +33,13 @@ TYPE_PROFESSIONNEL = "Pro"
 # Laisser vide ("") pour garder l'adresse Amazon.
 EMAIL_DESTINATAIRE = "mister.kahwa@gmail.com"
 
+# Indicatif téléphonique international par code pays (ajouter les pays manquants).
+INDICATIFS = {
+    "FR": "33", "BE": "32", "LU": "352", "MC": "377", "CH": "41",
+    "ES": "34", "PT": "351", "IT": "39", "DE": "49", "AT": "43",
+    "NL": "31", "IE": "353", "GB": "44", "PL": "48", "SE": "46", "DK": "45",
+}
+
 # Colonnes du fichier Chronopost, dans l'ordre, avec leur longueur maximum.
 # Les en-têtes sont recopiés tels quels depuis import_multicolis_exemple.csv.
 COLONNES = [
@@ -139,9 +146,26 @@ def separer_nom_prenom(nom_complet: str, nom_acheteur: str) -> tuple[str, str]:
     return mots[0], " ".join(mots[1:])
 
 
-def nettoyer_telephone(telephone):
-    """Ne garde que les chiffres et le '+' (espaces, points, tirets retirés)."""
-    return "".join(c for c in telephone if c.isdigit() or c == "+")
+def formater_telephone(telephone, pays):
+    """Met le numéro au format international selon le pays de livraison.
+
+        "06 84 95 09 62" (FR) -> "+33684950962"
+        "618480219"      (ES) -> "+34618480219"
+        "0033684950962"  (FR) -> "+33684950962"
+    """
+    numero = "".join(c for c in telephone if c.isdigit() or c == "+")
+    if not numero or numero.startswith("+"):
+        return numero
+    if numero.startswith("00"):
+        return "+" + numero[2:]
+    indicatif = INDICATIFS.get(pays)
+    if not indicatif:
+        return numero  # Pays absent de INDICATIFS : numéro laissé tel quel.
+    if numero.startswith(indicatif) and len(numero) > 10:
+        return "+" + numero  # Indicatif déjà présent, sans le + ("33684950962").
+    if numero.startswith("0") and pays != "IT":
+        numero = numero[1:]  # Le 0 national disparaît ; en Italie, il fait partie du numéro.
+    return "+" + indicatif + numero
 
 
 def calculer_poids(lignes, skus_inconnus):
@@ -185,7 +209,7 @@ def commande_vers_colis(lignes, date_envoi, skus_inconnus):
         "Code pays": pays,
         "Code Postal": ligne["ship-postal-code"].strip(),
         "Ville": ligne["ship-city"].strip(),
-        "Téléphone": nettoyer_telephone(ligne["buyer-phone-number"]),
+        "Téléphone": formater_telephone(ligne["buyer-phone-number"], pays),
         "E-mail": EMAIL_DESTINATAIRE or ligne["buyer-email"].strip(),
         "Type": TYPE_PROFESSIONNEL if est_pro else TYPE_PARTICULIER,
         "Raison sociale": raison_sociale,
