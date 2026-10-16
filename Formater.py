@@ -74,6 +74,7 @@ COLONNES = [
 
 
 # --- Lecture du rapport Amazon ----------------------------------------------
+## note dev : chemin est un objet instance de la classe path du package pathlib 
 
 def lire_texte(chemin):
     """Lit le fichier en UTF-8, ou en Windows-1252 pour les anciens rapports."""
@@ -99,17 +100,28 @@ def lire_commandes(chemin):
 # --- Conversion -------------------------------------------------------------
 
 def separer_societe(destinataire: str, acheteur: str) -> tuple[str, str]:
-    """Pour une commande pro, sépare le destinataire en (raison sociale, personne).
+    """Pour une commande pro, renvoie (raison sociale, personne à livrer).
 
-    Amazon y met la société suivie du nom de l'acheteur, par exemple
-    "SUMINISTROS ADARRA Manu Maya" avec l'acheteur "Manu Maya".
+    Selon le client, Amazon met la société à l'un de deux endroits :
+      1. dans 'recipient-name', suivie du nom de l'acheteur :
+         "SUMINISTROS ADARRA Manu Maya" / acheteur "Manu Maya"
+             -> ("SUMINISTROS ADARRA", "Manu Maya")
+      2. dans 'buyer-name' (nom du compte Amazon), 'recipient-name' étant
+         la personne à livrer :
+         "Peltier Julien" / acheteur "A-Z COURTAGE"
+             -> ("A-Z COURTAGE", "Peltier Julien")
     Sinon, le destinataire complet sert de raison sociale et de personne.
     """
     mots = destinataire.split()
     mots_acheteur = acheteur.lower().split()
     n = len(mots_acheteur)
+    # Cas 1 : la société est au début de recipient-name, suivie de l'acheteur.
     if 0 < n < len(mots) and [m.lower() for m in mots[-n:]] == mots_acheteur:
         return " ".join(mots[:-n]), " ".join(mots[-n:])
+
+    # TODO cas 2 : à quelle condition buyer-name est-il la raison sociale ?
+    # Renvoyer (acheteur, destinataire) dans ce cas.
+
     return destinataire, destinataire
 
 
@@ -192,7 +204,7 @@ def commande_vers_colis(lignes, date_envoi, skus_inconnus):
     est_pro = ligne["is-business-order"].strip().lower() == "true"
     destinataire = ligne["recipient-name"].strip()
     acheteur = ligne["buyer-name"].strip()
-    # Raison sociale obligatoire pour un pro : Amazon la place dans recipient-name.
+    # Raison sociale obligatoire pour un pro : dans recipient-name ou dans buyer-name.
     raison_sociale = ""
     if est_pro:
         raison_sociale, destinataire = separer_societe(destinataire, acheteur)
@@ -216,7 +228,7 @@ def commande_vers_colis(lignes, date_envoi, skus_inconnus):
         "Date Envoi": date_envoi,
         "Poids": calculer_poids(lignes, skus_inconnus),
         "Produit": choisir_produit(pays, est_pro),
-        "Nom Envoi": ligne["order-id"],
+        "Nom Envoi": f"{ligne['order-id']} {nom}",
     }
     return colis
 
